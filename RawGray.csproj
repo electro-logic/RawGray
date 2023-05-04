@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <PlatformTarget>x64</PlatformTarget>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <UseWindowsForms>True</UseWindowsForms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="LTZ03676.tiff" />
+    <None Remove="LTZ4191.tiff" />
+    <None Remove="raw_2734x1806.tiff" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Samples\LTZ03676.tiff">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Samples\LTZ4191.tiff">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Samples\raw_2734x1806.tiff">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

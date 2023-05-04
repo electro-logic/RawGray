@@ -1,0 +1,97 @@
+﻿<Window x:Class="RawGray.MainWindow" xmlns:local="clr-namespace:RawGray"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d"        
+        Title="Raw Gray" Height="1080" Width="1920" UseLayoutRounding="True" RenderOptions.EdgeMode="Aliased" RenderOptions.BitmapScalingMode="NearestNeighbor" Background="#FF4C4C4C" Foreground="#FFDFDFDF" WindowStartupLocation="CenterScreen" WindowState="Maximized">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <UniformGrid Columns="4">
+            <UniformGrid.Resources>
+                <Style TargetType="{x:Type Button}">
+                    <Setter Property="Margin" Value="0,0,10,0"/>
+                </Style>
+            </UniformGrid.Resources>
+            <Button Content="Open 16 bit RGGB Image" Click="btnOpenImage_Click"/>
+            <Button Content="Reset Gains" Click="btnResetGains_Click" />
+            <Button Content="Export Channels" Click="btnExportChannels_Click" />
+            <Button Content="Batch Export" Click="btnBatchExport_Click" Margin="0" />
+        </UniformGrid>
+        <UniformGrid Grid.Row="2" Columns="2">
+            <StackPanel>
+                <TextBlock Text="Zoom" />
+                <Slider x:Name="sliderZoom" Minimum="0.25" Maximum="8" Value="1" TickPlacement="BottomRight" TickFrequency="0.25" IsSnapToTickEnabled="True"
+                    ValueChanged="zoom_ValueChanged" AutoToolTipPlacement="BottomRight" SmallChange="0.25" />
+                <TextBlock Text="{Binding Value, ElementName=sliderZoom}" />
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Text="Gamma" />
+                <Slider x:Name="sliderGamma" Minimum="0.2" Maximum="8" Value="2.2" TickPlacement="BottomRight" TickFrequency="0.2" IsSnapToTickEnabled="True"
+                    ValueChanged="channels_ValueChanged" AutoToolTipPlacement="BottomRight" SmallChange="0.2" />
+                <TextBlock Text="{Binding Value, ElementName=sliderGamma}" />
+            </StackPanel>
+        </UniformGrid>
+        <ScrollViewer HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible" Grid.Row="3">
+            <Viewbox x:Name="viewbox">
+                <Image x:Name="img" Stretch="None" />
+            </Viewbox>
+        </ScrollViewer>
+        <StackPanel Grid.Row="4">
+            <StackPanel.Resources>
+                <Style TargetType="{x:Type Slider}">
+                    <Setter Property="Value" Value="1.0" />
+                    <Setter Property="Minimum" Value="0" />
+                    <Setter Property="Maximum" Value="5.0" />
+                    <Setter Property="LargeChange" Value="0.25" />
+                    <Setter Property="TickFrequency" Value="0.01" />
+                    <Setter Property="SmallChange" Value="0.01" />
+                    <Setter Property="TickPlacement" Value="BottomRight" />
+                    <Setter Property="IsSnapToTickEnabled" Value="True" />
+                </Style>
+            </StackPanel.Resources>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="R1" />
+                <Slider Grid.Column="1" x:Name="sliderR" ValueChanged="channels_ValueChanged" Value="1" />
+                <TextBlock Grid.Column="2" Text="{Binding Value, ElementName=sliderR}" />
+            </Grid>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="G1" />
+                <Slider Grid.Column="1" x:Name="sliderG1" ValueChanged="channels_ValueChanged" Value="1" />
+                <TextBlock Grid.Column="2" Text="{Binding Value, ElementName=sliderG1}" />
+            </Grid>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="G2" />
+                <Slider Grid.Column="1" x:Name="sliderG2" ValueChanged="channels_ValueChanged" Value="1" />
+                <TextBlock Grid.Column="2" Text="{Binding Value, ElementName=sliderG2}" />
+            </Grid>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="B1" />
+                <Slider Grid.Column="1" x:Name="sliderB" ValueChanged="channels_ValueChanged" Value="1" />
+                <TextBlock Grid.Column="2" Text="{Binding Value, ElementName=sliderB}" />
+            </Grid>
+        </StackPanel>
+    </Grid>
+</Window>
