@@ -10,6 +10,7 @@ namespace RawGray
     {
         BitmapDecoder _bmpDecoder;
         WriteableBitmap _wb;
+        string _currentFilename;
         public MainWindow() => InitializeComponent();
         void UpdateImage(string image = null)
         {
@@ -24,7 +25,8 @@ namespace RawGray
             var b = sliderB.Value;
             if (image != null)
             {
-                Title = "RawGrey " + image;
+                _currentFilename = image;
+                Title = "RawGrey " + _currentFilename;
                 _bmpDecoder = BitmapDecoder.Create(new Uri(image, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
             }
             else
@@ -123,7 +125,6 @@ namespace RawGray
         {
             var openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "Image|*.tif;*.tiff;*.png;*.jpg|All files (*.*)|*.*";
-            openFileDialog.InitialDirectory = Environment.CurrentDirectory;
             if (openFileDialog.ShowDialog() == true)
             {
                 UpdateImage(openFileDialog.FileName);
@@ -139,25 +140,17 @@ namespace RawGray
         }
         void btnExportChannels_Click(object sender, RoutedEventArgs e)
         {
-            var inputFolderDialog = new System.Windows.Forms.FolderBrowserDialog() { Description = "Input folder" };
-            if (inputFolderDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            var outputFolderDialog = new System.Windows.Forms.FolderBrowserDialog() { Description = "Output folder" };
+            if (outputFolderDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                var outputFolderDialog = new System.Windows.Forms.FolderBrowserDialog() { Description = "Output folder" };
-                if (outputFolderDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                {
-                    var files = Directory.EnumerateFiles(inputFolderDialog.SelectedPath, "*");
-                    foreach (var file in files)
-                    {
-                        WriteableBitmap rBmp, g1Bmp, g2Bmp, bBmp;
-                        ExtractChannels(file, out rBmp, out g1Bmp, out g2Bmp, out bBmp);
-                        var folder = outputFolderDialog.SelectedPath;
-                        var name = Path.GetFileNameWithoutExtension(file);
-                        SaveTiff(rBmp, @$"{folder}\{name}_r.tif");
-                        SaveTiff(g1Bmp, @$"{folder}\{name}_g1.tif");
-                        SaveTiff(g2Bmp, @$"{folder}\{name}_g2.tif");
-                        SaveTiff(bBmp, @$"{folder}\{name}_b.tif");
-                    }
-                }
+                WriteableBitmap rBmp, g1Bmp, g2Bmp, bBmp;
+                ExtractChannels(_currentFilename, out rBmp, out g1Bmp, out g2Bmp, out bBmp);
+                var folder = outputFolderDialog.SelectedPath;
+                var name = Path.GetFileNameWithoutExtension(_currentFilename);
+                SaveTiff(rBmp, @$"{folder}\{name}_r.tif");
+                SaveTiff(g1Bmp, @$"{folder}\{name}_g1.tif");
+                SaveTiff(g2Bmp, @$"{folder}\{name}_g2.tif");
+                SaveTiff(bBmp, @$"{folder}\{name}_b.tif");
             }
             MessageBox.Show("Done");
         }

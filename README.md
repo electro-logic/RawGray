@@ -13,7 +13,7 @@ Extract Bayer channels from RAW images
 
 # Notes
 
-- RAW images MUST have the bayer pattern RGGB (ex. Sony Alpha Camera). Different patterns require code changes.
+- RAW images are supposed to have the bayer pattern RGGB (ex. Sony Alpha Camera). Different patterns require code changes or just rename the exported files (ex. for BGGR swap R and B channels).
 - There are some TIFF sample images bundled with the software. Try them to on-board quickly.
 
 # Requirements
