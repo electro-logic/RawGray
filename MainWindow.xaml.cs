@@ -19,17 +19,22 @@ namespace RawGray
             if (!IsInitialized)
                 return;
 
-            if (Path.GetExtension(image).ToLower() == ".arw")
+            if (image != null)
             {
-                // Convert ARW to TIFF
-                var proc = new Process() { 
-                    StartInfo = new ProcessStartInfo("dcraw_emu.exe", $"-T -4 -disinterp -o 0 {image}") { 
-                        CreateNoWindow = true 
-                    } 
-                };
-                proc.Start();
-                proc.WaitForExit();
-                image += ".tiff";
+                if (Path.GetExtension(image).ToLower() == ".arw")
+                {
+                    // Convert ARW to TIFF
+                    var proc = new Process()
+                    {
+                        StartInfo = new ProcessStartInfo("dcraw_emu.exe", $"-T -4 -disinterp -o 0 {image}")
+                        {
+                            CreateNoWindow = true
+                        }
+                    };
+                    proc.Start();
+                    proc.WaitForExit();
+                    image += ".tiff";
+                }
             }
 
             // Change values
