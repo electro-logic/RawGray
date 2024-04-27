@@ -23,7 +23,7 @@ namespace RawGray
             {
                 if (Path.GetExtension(image).ToLower() == ".arw")
                 {
-                    // Convert ARW to TIFF
+                    Debug.WriteLine("Converting ARW to TIFF");
                     var proc = new Process()
                     {
                         StartInfo = new ProcessStartInfo("dcraw_emu.exe", $"-T -4 -disinterp -o 0 {image}")
@@ -73,6 +73,7 @@ namespace RawGray
             var w = _wb.PixelWidth;
             var h = _wb.PixelHeight;
             UInt16* bb = (UInt16*)_wb.BackBuffer.ToPointer();
+            Debug.WriteLine("Converting Gamma");
             // RGGB
             Parallel.For(0, w, (colIndex) =>
             {
@@ -124,6 +125,7 @@ namespace RawGray
         }
         WriteableBitmap RGGB_Rgb48_to_Gray16(WriteableBitmap inBmp)
         {
+            Debug.WriteLine("Converting RGB48 to Gray16");
             var w = inBmp.PixelWidth;
             var h = inBmp.PixelHeight;
             var outBmp = new WriteableBitmap(w, h, 96, 96, PixelFormats.Gray16, null);
@@ -184,11 +186,16 @@ namespace RawGray
                     foreach (var file in files)
                     {
                         UpdateImage(file);
+                        ExportChannels(outputFolderDialog.SelectedPath);
+                        // Save Gray16 image
                         var encoder = new TiffBitmapEncoder();
                         encoder.Compression = TiffCompressOption.None;
                         var frame = BitmapFrame.Create(_wb);
                         encoder.Frames.Add(frame);
-                        encoder.Save(new FileStream(Path.Combine(outputFolderDialog.SelectedPath, Path.GetFileName(file)), FileMode.Create));
+                        using (var fs = new FileStream(Path.Combine(outputFolderDialog.SelectedPath, Path.GetFileName(file)), FileMode.Create))
+                        {
+                            encoder.Save(fs);
+                        }
                     }
                 }
             }
@@ -217,27 +224,35 @@ namespace RawGray
             var outputFolderDialog = new System.Windows.Forms.FolderBrowserDialog() { Description = "Output folder" };
             if (outputFolderDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                WriteableBitmap rBmp, g1Bmp, g2Bmp, bBmp;
-                ExtractChannels(_currentFilename, out rBmp, out g1Bmp, out g2Bmp, out bBmp);
                 var folder = outputFolderDialog.SelectedPath;
-                var name = Path.GetFileNameWithoutExtension(_currentFilename);
-                SaveTiff(rBmp, @$"{folder}\{name}_r.tif");
-                SaveTiff(g1Bmp, @$"{folder}\{name}_g1.tif");
-                SaveTiff(g2Bmp, @$"{folder}\{name}_g2.tif");
-                SaveTiff(bBmp, @$"{folder}\{name}_b.tif");
+                ExportChannels(folder);
             }
             MessageBox.Show("Done");
+        }
+        void ExportChannels(string folder)
+        {
+            WriteableBitmap rBmp, g1Bmp, g2Bmp, bBmp;
+            ExtractChannels(_currentFilename, out rBmp, out g1Bmp, out g2Bmp, out bBmp);
+            var name = Path.GetFileNameWithoutExtension(_currentFilename);
+            SaveTiff(rBmp, @$"{folder}\{name}_r.tif");
+            SaveTiff(g1Bmp, @$"{folder}\{name}_g1.tif");
+            SaveTiff(g2Bmp, @$"{folder}\{name}_g2.tif");
+            SaveTiff(bBmp, @$"{folder}\{name}_b.tif");
         }
         void SaveTiff(WriteableBitmap wb, string outFile)
         {
             var encoder = new TiffBitmapEncoder() { Compression = TiffCompressOption.None };
             var frame = BitmapFrame.Create(wb);
             encoder.Frames.Add(frame);
-            encoder.Save(new FileStream(outFile, FileMode.Create));
+            using (var fs = new FileStream(outFile, FileMode.Create))
+            {
+                encoder.Save(fs);
+            }
         }
         void ExtractChannels(string image, out WriteableBitmap rBmp, out WriteableBitmap g1Bmp, out WriteableBitmap g2Bmp, out WriteableBitmap bBmp)
         {
-            _bmpDecoder = BitmapDecoder.Create(new Uri(image, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+            //_bmpDecoder = BitmapDecoder.Create(new Uri(image, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+            UpdateImage(image);
 
             // Change values
             var gamma = sliderGamma.Value;
@@ -246,8 +261,9 @@ namespace RawGray
             var gainG2 = sliderG2.Value;
             var gainB = sliderB.Value;
 
-            _bmpDecoder = BitmapDecoder.Create(new Uri(image, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
-            var frame = _bmpDecoder.Frames[0];
+            //_bmpDecoder = BitmapDecoder.Create(new Uri(image, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+            //var frame = _bmpDecoder.Frames[0];
+            var frame = _wb;
             var w = frame.PixelWidth;
             var h = frame.PixelHeight;
 
@@ -255,7 +271,7 @@ namespace RawGray
             g1Bmp = new WriteableBitmap(w / 2, h / 2, frame.DpiX, frame.DpiY, frame.Format, null);
             g2Bmp = new WriteableBitmap(w / 2, h / 2, frame.DpiX, frame.DpiY, frame.Format, null);
             bBmp = new WriteableBitmap(w / 2, h / 2, frame.DpiX, frame.DpiY, frame.Format, null);
-            _wb = new WriteableBitmap(_bmpDecoder.Frames[0]);
+            //_wb = new WriteableBitmap(_bmpDecoder.Frames[0]);
             _wb.Lock(); rBmp.Lock(); g1Bmp.Lock(); g2Bmp.Lock(); bBmp.Lock();
             UInt16* ib = (UInt16*)_wb.BackBuffer.ToPointer();
             UInt16* rb = (UInt16*)rBmp.BackBuffer.ToPointer();
