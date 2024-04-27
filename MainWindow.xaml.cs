@@ -1,8 +1,10 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 namespace RawGray
 {
@@ -26,7 +28,7 @@ namespace RawGray
             if (image != null)
             {
                 _currentFilename = image;
-                Title = "RawGrey " + _currentFilename;
+                Title = "RawGray " + _currentFilename;
                 _bmpDecoder = BitmapDecoder.Create(new Uri(image, UriKind.RelativeOrAbsolute), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
             }
             else
@@ -38,15 +40,20 @@ namespace RawGray
             }
             viewbox.Width = _bmpDecoder.Frames[0].PixelWidth * sliderZoom.Value;
             viewbox.Height = _bmpDecoder.Frames[0].PixelHeight * sliderZoom.Value;
-            _wb = new WriteableBitmap(_bmpDecoder.Frames[0]);
+            BitmapSource bmpSource = _bmpDecoder.Frames[0];            
+            _wb = new WriteableBitmap(bmpSource);
+            if (_wb.Format.BitsPerPixel == 48)
+            {
+                _wb = RGGB_Rgb48_to_Gray16(_wb);
+            }
+            if (_wb.Format.BitsPerPixel != 16)
+            {
+                MessageBox.Show($"Image is not Gray16 or RGB48");
+                return;
+            }
             _wb.Lock();
             var w = _wb.PixelWidth;
             var h = _wb.PixelHeight;
-            if (_wb.Format.BitsPerPixel != 16)
-            {
-                MessageBox.Show("Image is not 16 bit");
-                return;
-            }
             UInt16* bb = (UInt16*)_wb.BackBuffer.ToPointer();
             // RGGB
             Parallel.For(0, w, (colIndex) =>
@@ -96,6 +103,54 @@ namespace RawGray
             _wb.AddDirtyRect(new Int32Rect(0, 0, w, h));
             _wb.Unlock();
             img.Source = _wb;
+        }
+        WriteableBitmap RGGB_Rgb48_to_Gray16(WriteableBitmap inBmp)
+        {
+            var w = inBmp.PixelWidth;
+            var h = inBmp.PixelHeight;
+            var outBmp = new WriteableBitmap(w, h, 96, 96, PixelFormats.Gray16, null);
+            outBmp.Lock();
+            UInt16* outBmpBuffer = (UInt16*)outBmp.BackBuffer.ToPointer();
+            UInt16* inBmpBuffer = (UInt16*)inBmp.BackBuffer.ToPointer();
+            Parallel.For(0, w, (colIndex) =>
+            { 
+                for (int rowIndex = 0; rowIndex < h; rowIndex++)
+                {
+                    // Adjust value in linear space
+                    int index = (rowIndex * w) + colIndex;
+                    if ((colIndex % 2) == 0)
+                    {
+                        // R/G1
+                        if ((rowIndex % 2) == 0)
+                        {
+                            // R
+                            outBmpBuffer[index] = (UInt16)(inBmpBuffer[index * 3]);
+                        }
+                        else
+                        {
+                            // G1
+                            outBmpBuffer[index] = (UInt16)(inBmpBuffer[index * 3 + 1]);
+                        }
+                    }
+                    else
+                    {
+                        // G2/B
+                        if ((rowIndex % 2) == 0)
+                        {
+                            // G2
+                            outBmpBuffer[index] = (UInt16)(inBmpBuffer[index * 3 + 1]);
+                        }
+                        else
+                        {
+                            // B
+                            outBmpBuffer[index] = (UInt16)(inBmpBuffer[index * 3 + 2]);
+                        }
+                    }
+                }
+            });
+            outBmp.AddDirtyRect(new Int32Rect(0, 0, w, h));
+            outBmp.Unlock();
+            return outBmp;
         }
         void channels_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) => UpdateImage();
         void zoom_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) => UpdateImage();
@@ -237,6 +292,24 @@ namespace RawGray
                 }
             }
             rBmp.Unlock(); g1Bmp.Unlock(); g2Bmp.Unlock(); bBmp.Unlock(); _wb.Unlock();
+        }
+        void Window_Drop(object sender, DragEventArgs e)
+        {
+            try
+            {
+                if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                {
+                    string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                    if (files.Length > 0)
+                    {
+                        UpdateImage(files[0]);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+            }
         }
     }
 }
