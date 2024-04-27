@@ -16,7 +16,7 @@
                     <Setter Property="Margin" Value="0,0,10,0"/>
                 </Style>
             </UniformGrid.Resources>
-            <Button Content="Open RGGB Image" Click="btnOpenImage_Click"/>
+            <Button Content="Open Image" Click="btnOpenImage_Click"/>
             <Button Content="Reset Gains" Click="btnResetGains_Click" />
             <Button Content="Export Channels" Click="btnExportChannels_Click" />
             <Button Content="Batch Export" Click="btnBatchExport_Click" Margin="0" />

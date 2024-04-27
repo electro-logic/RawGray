@@ -6,7 +6,7 @@ Extract Bayer channels from RAW images
 
 # How to use it
 
-- Convert RAW images to Gray16 or Rgb48 mosaiced TIFF images.
+- Convert RAW images to Gray16 or Rgb48 mosaiced TIFF images
 	- [RawTherapee](https://www.rawtherapee.com): set the Demosaicing Method "None" 
 	- [LibRaw](https://www.libraw.org/): run the command "dcraw_emu.exe -T -4 -disinterp -o 0 input.dng"
 - Open the TIFF image with RawGray

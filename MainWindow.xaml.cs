@@ -19,6 +19,19 @@ namespace RawGray
             if (!IsInitialized)
                 return;
 
+            if (Path.GetExtension(image).ToLower() == ".arw")
+            {
+                // Convert ARW to TIFF
+                var proc = new Process() { 
+                    StartInfo = new ProcessStartInfo("dcraw_emu.exe", $"-T -4 -disinterp -o 0 {image}") { 
+                        CreateNoWindow = true 
+                    } 
+                };
+                proc.Start();
+                proc.WaitForExit();
+                image += ".tiff";
+            }
+
             // Change values
             var gamma = sliderGamma.Value;
             var r = sliderR.Value;
@@ -40,7 +53,7 @@ namespace RawGray
             }
             viewbox.Width = _bmpDecoder.Frames[0].PixelWidth * sliderZoom.Value;
             viewbox.Height = _bmpDecoder.Frames[0].PixelHeight * sliderZoom.Value;
-            BitmapSource bmpSource = _bmpDecoder.Frames[0];            
+            BitmapSource bmpSource = _bmpDecoder.Frames[0];
             _wb = new WriteableBitmap(bmpSource);
             if (_wb.Format.BitsPerPixel == 48)
             {
@@ -113,7 +126,7 @@ namespace RawGray
             UInt16* outBmpBuffer = (UInt16*)outBmp.BackBuffer.ToPointer();
             UInt16* inBmpBuffer = (UInt16*)inBmp.BackBuffer.ToPointer();
             Parallel.For(0, w, (colIndex) =>
-            { 
+            {
                 for (int rowIndex = 0; rowIndex < h; rowIndex++)
                 {
                     // Adjust value in linear space
@@ -182,7 +195,8 @@ namespace RawGray
             openFileDialog.Filter = "Image|*.tif;*.tiff;*.png;*.jpg|All files (*.*)|*.*";
             if (openFileDialog.ShowDialog() == true)
             {
-                UpdateImage(openFileDialog.FileName);
+                string filename = openFileDialog.FileName;
+                UpdateImage(filename);
             }
         }
         void btnResetGains_Click(object sender, RoutedEventArgs e)
